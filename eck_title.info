@@ -1,0 +1,5 @@
+name = ECK Title
+description = Allows changing of the title label for ECK based entities.
+core = 7.x
+package = ECK
+version = 1.2

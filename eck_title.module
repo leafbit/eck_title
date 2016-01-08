@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Allows changing of the label on title property of entity based on ECK.
+ */
+
+/**
+ * A hook invocation.
+ */
+function eck_title_form_alter(&$form, &$state, $fid) {
+
+  $mtch = "/^eck__entity__form_(add|edit)_(.*?)$/";
+  if ($fid == 'eck__bundle__edit_form') {
+    $entity_type = $state['build_info']['args'][0];
+    $bundle = $state['build_info']['args'][1];
+    $k = 'eck_title_' . $entity_type . '__' . $bundle;
+    $label = variable_get($k, 'Title');
+    $k2 = $k . '__size';
+    $size = variable_get($k2, 25);
+    $k_intro = $k . '_intro';
+    $form['replace_title'] = array(
+      '#title' => t('Title Label'),
+      '#type' => 'textfield',
+      '#size' => 25,
+      '#default_value' => $label,
+      '#required' => TRUE,
+    );
+
+    $form['title_field_size'] = array(
+      '#title' => t('Title field size'),
+      '#type' => 'textfield',
+      '#size' => 5,
+      '#default_value' => $size,
+      '#required' => TRUE,
+    );
+
+    $form['intro'] = array(
+      '#title' => t('Form introduction'),
+      '#type' => 'textarea',
+      '#rows' => 4,
+      '#default_value' => variable_get($k_intro, ''),
+    );
+
+    $k_description = $k . '_description';
+    $form['description'] = array(
+      '#title' => t('Description'),
+      '#type' => 'textarea',
+      '#rows' => 4,
+      '#default_value' => variable_get($k_description, ''),
+      '#description' => t('Details to be used for administrative purpose. Commments about this entity bundle.'),
+    );
+
+    $form['#submit'][] = 'eck_title_form_save_title_label';
+  }
+  elseif (preg_match($mtch, $fid)) {
+    $entity_type = $form['#entity_type'];
+    $bundle = $form['#bundle'];
+    $k = 'eck_title_' . $entity_type . '__' . $bundle;
+    $k2 = $k . '__size';
+    $label = variable_get($k, 'Title');
+    $size = variable_get($k2, 25);
+    $intro = variable_get($k . '_intro', '');
+    $form['title']['#title'] = t($label);
+    $form['title']['#size'] = $size;
+
+    if ($intro) {
+      $form['eck_title_inrto'] = array(
+        '#markup' => '<p>' . t($intro) . '</p>',
+        '#weight' => -10,
+      );
+    }
+  }
+}
+
+function eck_title_form_save_title_label($form, $state) {
+  $label = $state['values']['replace_title'];
+  $size = $state['values']['title_field_size'];
+  $entity_type = $state['build_info']['args'][0];
+  $bundle = $state['build_info']['args'][1];
+  $k = 'eck_title_' . $entity_type . '__' . $bundle;
+  $k2 = $k . '__size';
+  variable_set($k2, $size);
+  variable_set($k, $label);
+  variable_set($k . '_intro', $state['values']['intro']);
+  variable_set($k . '_description', $state['values']['description']);
+}
